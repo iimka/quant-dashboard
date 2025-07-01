@@ -49,10 +49,10 @@
     async function loadDashboard() {
       // 這裡請替換成你 GitHub raw JSON 檔的 URL
       const [overview, trades, prices, macros] = await Promise.all([
-        fetch('https://github.com/iimka/quant-dashboard/blob/main/data/overview.json').then(r => r.json()),
-        fetch('https://github.com/iimka/quant-dashboard/blob/main/data/trades.json').then(r => r.json()),
-        fetch('https://github.com/iimka/quant-dashboard/blob/main/data/prices.json').then(r => r.json()),
-        fetch('https://github.com/iimka/quant-dashboard/blob/main/data/macros.json').then(r => r.json()),
+        fetch('https://raw.githubusercontent.com/iimka/quant-dashboard/refs/heads/main/data/overview.json').then(r => r.json()),
+        fetch('https://raw.githubusercontent.com/iimka/quant-dashboard/refs/heads/main/data/trades.json').then(r => r.json()),
+        fetch('https://raw.githubusercontent.com/iimka/quant-dashboard/refs/heads/main/data/prices.json').then(r => r.json()),
+        fetch('https://raw.githubusercontent.com/iimka/quant-dashboard/refs/heads/main/data/macros.json').then(r => r.json()),
       ]);
 
       // 概覽卡片
