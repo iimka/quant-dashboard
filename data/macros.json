@@ -1,1 +1,26 @@
-
+[
+  {
+    "A (year)": 2005,
+    "B (usd_hkd)": 7.8,
+    "C (us_rate)": 4.25,
+    "D (hk_property)": 80
+  },
+  {
+    "A (year)": 2010,
+    "B (usd_hkd)": 7.78,
+    "C (us_rate)": 0.25,
+    "D (hk_property)": 100
+  },
+  {
+    "A (year)": 2015,
+    "B (usd_hkd)": 7.76,
+    "C (us_rate)": 0.5,
+    "D (hk_property)": 160
+  },
+  {
+    "A (year)": 2020,
+    "B (usd_hkd)": 7.75,
+    "C (us_rate)": 0.25,
+    "D (hk_property)": 190
+  }
+]
