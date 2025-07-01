@@ -5,115 +5,204 @@
   <title>專業程式交易儀表板</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { font-family: sans-serif; margin: 2rem; background: #f6f8fa; }
-    .section { margin-bottom: 2rem; }
-    .card { display: inline-block; width: 220px; background: white; padding: 1rem; margin: 0.5rem; box-shadow: 0 0 5px rgba(0,0,0,0.1); border-radius: 10px; }
+    body { font-family: sans-serif; margin: 0; background: #f6f8fa; padding: 1rem; }
+    .container { max-width: 1400px; margin: 0 auto; }
+    .section { margin-bottom: 2rem; padding: 1rem; border-radius: 8px; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+    .card { padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: transform 0.2s; }
+    .card:hover { transform: translateY(-5px); }
     .green { color: green; } .red { color: red; }
-    table { width: 100%; border-collapse: collapse; background: white; }
-    th, td { border: 1px solid #ccc; padding: 8px; font-size: 14px; }
-    th { background: #eee; }
+    table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    th, td { border: 1px solid #ddd; padding: 10px; font-size: 14px; }
+    th { background: #f0f4f8; }
+    canvas { max-width: 100% !important; height: auto !important; }
+    h1 { text-align: center; margin-bottom: 2rem; color: #2c3e50; }
+    h2 { color: #3498db; border-bottom: 2px solid #eee; padding-bottom: 0.5rem; margin-top: 2rem; }
+    @media (max-width: 768px) {
+      .dashboard-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
 
   <h1>程式交易員儀表板</h1>
 
-  <!-- 概覽卡片 -->
-  <div class="section" id="overview"></div>
+  <div class="container">
+    <!-- 概覽卡片 -->
+    <div class="section dashboard-grid" id="overview"></div>
 
-  <!-- 系統狀態 -->
-  <div class="section">
-    <h2>交易系統運作狀況</h2>
-    <p id="system-status">載入中...</p>
-  </div>
+    <!-- 系統狀態 -->
+    <div class="section">
+      <h2>交易系統運作狀況</h2>
+      <p id="system-status">載入中...</p>
+    </div>
 
-  <!-- 交易記錄 -->
-  <div class="section">
-    <h2>交易記錄</h2>
-    <table id="trade-log"></table>
-  </div>
+    <!-- 交易記錄 -->
+    <div class="section">
+      <h2>交易記錄</h2>
+      <table id="trade-log"></table>
+    </div>
 
-  <!-- 報價走勢圖 -->
-  <div class="section">
-    <h2>資產價格走勢</h2>
-    <canvas id="priceChart" height="200"></canvas>
-  </div>
+    <!-- 報價走勢圖 -->
+    <div class="section">
+      <h2>資產價格走勢</h2>
+      <canvas id="priceChart" height="200"></canvas>
+    </div>
 
-  <!-- 宏觀經濟走勢 -->
-  <div class="section">
-    <h2>宏觀經濟指標</h2>
-    <canvas id="macroChart" height="200"></canvas>
+    <!-- 宏觀經濟走勢 -->
+    <div class="section">
+      <h2>宏觀經濟指標</h2>
+      <canvas id="macroChart" height="200"></canvas>
+    </div>
   </div>
 
   <script>
     async function loadDashboard() {
-      // 這裡請替換成你 GitHub raw JSON 檔的 URL
-      const [overview, trades, prices, macros] = await Promise.all([
-        fetch('https://raw.githubusercontent.com/iimka/quant-dashboard/refs/heads/main/data/overview.json').then(r => r.json()),
-        fetch('https://raw.githubusercontent.com/iimka/quant-dashboard/refs/heads/main/data/trades.json').then(r => r.json()),
-        fetch('https://raw.githubusercontent.com/iimka/quant-dashboard/refs/heads/main/data/prices.json').then(r => r.json()),
-        fetch('https://raw.githubusercontent.com/iimka/quant-dashboard/refs/heads/main/data/macros.json').then(r => r.json()),
-      ]);
+      try {
+        // 這裡請替換成你 GitHub raw JSON 檔的 URL
+        const [overview, trades, prices, macros] = await Promise.all([
+          fetch('https://raw.githubusercontent.com/iimka/quant-dashboard/refs/heads/main/data/overview.json').then(r => r.json()),
+          fetch('https://raw.githubusercontent.com/iimka/quant-dashboard/refs/heads/main/data/trades.json').then(r => r.json()),
+          fetch('https://raw.githubusercontent.com/iimka/quant-dashboard/refs/heads/main/data/prices.json').then(r => r.json()),
+          fetch('https://raw.githubusercontent.com/iimka/quant-dashboard/refs/heads/main/data/macros.json').then(r => r.json()),
+        ]);
 
-      // 概覽卡片
-      document.getElementById("overview").innerHTML = `
-        <div class="card">資產總值<br><strong>$${overview.total_assets}</strong></div>
-        <div class="card">MNQ 持倉<br><strong>${overview.mnq_position}</strong></div>
-        <div class="card">日損益<br><strong class="${overview.daily_pnl >= 0 ? 'green' : 'red'}">$${overview.daily_pnl}</strong></div>
-        <div class="card">每股 NAV<br><strong>$${overview.nav_current} (${overview.nav_prev})</strong></div>
-        <div class="card">月變化<br><strong>${overview.month_change}%</strong></div>
-      `;
+        // 概覽卡片
+        document.getElementById("overview").innerHTML = `
+          <div class="card">
+            <div class="dashboard-item">
+              <div class="label">資產總值</div>
+              <div class="value"><strong>$${overview.total_assets.toLocaleString()}</strong></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="dashboard-item">
+              <div class="label">MNQ 持倉</div>
+              <div class="value"><strong>${overview.mnq_position}</strong></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="dashboard-item">
+              <div class="label">日損益</div>
+              <div class="value"><strong class="${overview.daily_pnl >= 0 ? 'green' : 'red'}">$${overview.daily_pnl.toLocaleString()}</strong></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="dashboard-item">
+              <div class="label">每股 NAV</div>
+              <div class="value"><strong>$${overview.nav_current.toLocaleString('en-US', {maximumFractionDigits: 2})} (${overview.nav_prev.toLocaleString('en-US', {maximumFractionDigits: 2})})</strong></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="dashboard-item">
+              <div class="label">月變化</div>
+              <div class="value"><strong>${overview.month_change}%</strong></div>
+            </div>
+          </div>
+        `;
 
-      // 系統狀態
-      document.getElementById("system-status").innerHTML = overview.system_status === "正常"
-        ? '<span class="green">✅ 正常運作</span>'
-        : '<span class="red">❌ 出現問題</span>';
+        // 系統狀態
+        document.getElementById("system-status").innerHTML = overview.system_status === "正常"
+          ? '<span class="green">✅ 正常運作</span>'
+          : '<span class="red">❌ 出現問題</span>';
 
-      // 交易記錄表格
-      let tableHtml = '<tr><th>時間</th><th>資產</th><th>方向</th><th>價格</th><th>數量</th></tr>';
-      for (let row of trades) {
-        tableHtml += `<tr>
-          <td>${row.time}</td>
-          <td>${row.asset}</td>
-          <td>${row.side}</td>
-          <td>${row.price}</td>
-          <td>${row.qty}</td>
-        </tr>`;
+        // 交易記錄表格
+        let tableHtml = '<tr><th>時間</th><th>資產</th><th>方向</th><th>價格</th><th>數量</th><th>損益</th></tr>';
+        for (let row of trades) {
+          tableHtml += `<tr>
+            <td>${row.time}</td>
+            <td>${row.asset}</td>
+            <td>${row.side}</td>
+            <td>${row.price}</td>
+            <td>${row.qty}</td>
+            <td>$${(row.price * row.qty).toLocaleString()}</td>
+          </tr>`;
+        }
+        document.getElementById("trade-log").innerHTML = tableHtml;
+
+        // 報價圖
+        new Chart(document.getElementById("priceChart"), {
+          type: "line",
+          data: {
+            labels: prices.map(p => p.date),
+            datasets: [{
+              label: "AAPL",
+              data: prices.map(p => p.aapl),
+              borderColor: "blue", 
+              fill: false,
+              pointRadius: 4,
+              tension: 0.4
+            }, {
+              label: "MNQ",
+              data: prices.map(p => p.mnq),
+              borderColor: "green", 
+              fill: false,
+              pointRadius: 4,
+              tension: 0.4
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                title: {
+                  display: true,
+                  text: '價格'
+                }
+              }
+            }
+          }
+        });
+
+        // 宏觀經濟圖
+        new Chart(document.getElementById("macroChart"), {
+          type: "line",
+          data: {
+            labels: macros.map(m => m.year),
+            datasets: [
+              { 
+                label: "美元對港元", 
+                data: macros.map(m => m.usd_hkd), 
+                borderColor: "orange", 
+                pointRadius: 4,
+                tension: 0.4
+              },
+              { 
+                label: "美利率%", 
+                data: macros.map(m => m.us_rate), 
+                borderColor: "purple", 
+                pointRadius: 4,
+                tension: 0.4
+              },
+              { 
+                label: "香港樓價指數", 
+                data: macros.map(m => m.hk_property), 
+                borderColor: "brown", 
+                pointRadius: 4,
+                tension: 0.4
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                title: {
+                  display: true,
+                  text: '指標值'
+                }
+              }
+            }
+          }
+        });
+      } catch (error) {
+        console.error("加載數據失敗:", error);
+        document.getElementById("system-status").innerHTML = '<span class="red">❌ 數據加載失敗</span>';
       }
-      document.getElementById("trade-log").innerHTML = tableHtml;
-
-      // 報價圖
-      new Chart(document.getElementById("priceChart"), {
-        type: "line",
-        data: {
-          labels: prices.map(p => p.date),
-          datasets: [{
-            label: "AAPL",
-            data: prices.map(p => p.aapl),
-            borderColor: "blue", fill: false
-          }, {
-            label: "MNQ",
-            data: prices.map(p => p.mnq),
-            borderColor: "green", fill: false
-          }]
-        }
-      });
-
-      // 宏觀經濟圖
-      new Chart(document.getElementById("macroChart"), {
-        type: "line",
-        data: {
-          labels: macros.map(m => m.year),
-          datasets: [
-            { label: "美元對港元", data: macros.map(m => m.usd_hkd), borderColor: "orange" },
-            { label: "美利率%", data: macros.map(m => m.us_rate), borderColor: "purple" },
-            { label: "香港樓價指數", data: macros.map(m => m.hk_property), borderColor: "brown" }
-          ]
-        }
-      });
     }
 
-    loadDashboard();
+    // 頁面加載完成後執行
+    window.addEventListener('DOMContentLoaded', loadDashboard);
   </script>
 
 </body>
