@@ -3,206 +3,690 @@
 <head>
   <meta charset="UTF-8">
   <title>專業程式交易儀表板</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1"></script>
   <style>
-    body { font-family: sans-serif; margin: 0; background: #f6f8fa; padding: 1rem; }
+    body { font-family: sans-serif; margin: 0; padding: 2rem; background: #f6f8fa; }
     .container { max-width: 1400px; margin: 0 auto; }
-    .section { margin-bottom: 2rem; padding: 1rem; border-radius: 8px; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-    .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
-    .card { padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: transform 0.2s; }
-    .card:hover { transform: translateY(-5px); }
-    .green { color: green; } .red { color: red; }
-    table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-    th, td { border: 1px solid #ddd; padding: 10px; font-size: 14px; }
-    th { background: #f0f4f8; }
-    canvas { max-width: 100% !important; height: auto !important; }
-    h1 { text-align: center; margin-bottom: 2rem; color: #2c3e50; }
-    h2 { color: #3498db; border-bottom: 2px solid #eee; padding-bottom: 0.5rem; margin-top: 2rem; }
+    .section { margin-bottom: 2rem; background: rgba(255,255,255,0.9); padding: 1.5rem; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
+    .card { background: white; padding: 1rem; margin-bottom: 1rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: transform 0.2s; }
+    .card:hover { transform: translateY(-2px); }
+    .green { color: #2ecc71; } .red { color: #e74c3c; }
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    th, td { border: 1px solid #ddd; padding: 10px; font-size: 14px; text-align: left; }
+    th { background: #f8f9fa; font-weight: 600; }
+    .chart-container { position: relative; height: 300px; margin: 1rem 0; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
     @media (max-width: 768px) {
-      .dashboard-grid { grid-template-columns: 1fr; }
+      .dashboard { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
-  <h1>程式交易員儀表板</h1>
-
   <div class="container">
-    <!-- 概覽卡片 -->
-    <div class="section dashboard-grid" id="overview"></div>
+    <header class="section">
+      <h1>程式交易員儀表板</h1>
+      <div class="system-status">
+        <span id="status-indicator" class="red">離線</span>
+        <span id="status-message">系統狀態檢查中...</span>
+      </div>
+    </header>
 
-    <!-- 系統狀態 -->
-    <div class="section">
-      <h2>交易系統運作狀況</h2>
-      <p id="system-status">載入中...</p>
-    </div>
+    <main class="dashboard">
+      <!-- 概覽卡片 -->
+      <div class="section">
+        <h2>實時概覽</h2>
+        <div class="stats-grid">
+          <div class="card">
+            <div class="stat-value">加载中...</div>
+            <div class="stat-label">資產總值</div>
+          </div>
+          <div class="card">
+            <div class="stat-value">加载中...</div>
+            <div class="stat-label">MNQ 持倉</div>
+          </div>
+          <div class="card">
+            <div class="stat-value">加载中...</div>
+            <div class="stat-label">日收益</div>
+          </div>
+          <div class="card">
+            <div class="stat-value">加载中...</div>
+            <div class="stat-label">NAV 變動</div>
+          </div>
+          <div class="card">
+            <div class="stat-value">加载中...</div>
+            <div class="stat-label">月增長率</div>
+          </div>
+          <div class="card">
+            <div class="stat-value">加载中...</div>
+            <div class="stat-label">交易次數</div>
+          </div>
+        </div>
+      </div>
 
-    <!-- 交易記錄 -->
-    <div class="section">
-      <h2>交易記錄</h2>
-      <table id="trade-log"></table>
-    </div>
+      <!-- 市场数据概览 -->
+      <div class="section">
+        <h2>市场数据</h2>
+        <div class="chart-container">
+          <canvas id="marketChart"></canvas>
+        </div>
+      </div>
 
-    <!-- 報價走勢圖 -->
-    <div class="section">
-      <h2>資產價格走勢</h2>
-      <canvas id="priceChart" height="200"></canvas>
-    </div>
+      <!-- 交易記錄 -->
+      <div class="section">
+        <h2>交易記錄</h2>
+        <table id="tradeLog"></table>
+      </div>
 
-    <!-- 宏觀經濟走勢 -->
-    <div class="section">
-      <h2>宏觀經濟指標</h2>
-      <canvas id="macroChart" height="200"></canvas>
-    </div>
+      <!-- 報價走勢圖 -->
+      <div class="section">
+        <h2>資產價格走勢</h2>
+        <div class="chart-container">
+          <canvas id="priceChart"></canvas>
+        </div>
+      </div>
+
+      <!-- 宏觀經濟指標 -->
+      <div class="section">
+        <h2>宏觀經濟指標</h2>
+        <div class="chart-container">
+          <canvas id="macroChart"></canvas>
+        </div>
+      </div>
+    </main>
   </div>
 
   <script>
-    async function loadDashboard() {
+    // 配置参数
+    const CONFIG = {
+      apiBaseUrl: 'https://raw.githubusercontent.com/iimka/quant-dashboard/main/data/',
+      refreshInterval: 30000, // 30秒自动刷新一次
+      maxRetries: 3,         // API请求最大重试次数
+      retryDelay: 1000       // 重试延迟时间(毫秒)
+    };
+
+    // 系统状态管理
+    let systemStatus = {
+      status: 'offline',
+      message: '无法连接到服务器'
+    };
+
+    // 数据缓存
+    let dataCache = {
+      lastUpdated: 0,
+      cacheTTL: 60000 // 缓存有效期（毫秒）
+    };
+
+    // 初始化应用
+    async function initializeApp() {
       try {
-        // 這裡請替換成你 GitHub raw JSON 檔的 URL
-        const [overview, trades, prices, macros] = await Promise.all([
-          fetch('https://raw.githubusercontent.com/iimka/quant-dashboard/refs/heads/main/data/overview.json').then(r => r.json()),
-          fetch('https://raw.githubusercontent.com/iimka/quant-dashboard/refs/heads/main/data/trades.json').then(r => r.json()),
-          fetch('https://raw.githubusercontent.com/iimka/quant-dashboard/refs/heads/main/data/prices.json').then(r => r.json()),
-          fetch('https://raw.githubusercontent.com/iimka/quant-dashboard/refs/heads/main/data/macros.json').then(r => r.json()),
-        ]);
-
-        // 概覽卡片
-        document.getElementById("overview").innerHTML = `
-          <div class="card">
-            <div class="dashboard-item">
-              <div class="label">資產總值</div>
-              <div class="value"><strong>$${overview.total_assets.toLocaleString()}</strong></div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="dashboard-item">
-              <div class="label">MNQ 持倉</div>
-              <div class="value"><strong>${overview.mnq_position}</strong></div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="dashboard-item">
-              <div class="label">日損益</div>
-              <div class="value"><strong class="${overview.daily_pnl >= 0 ? 'green' : 'red'}">$${overview.daily_pnl.toLocaleString()}</strong></div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="dashboard-item">
-              <div class="label">每股 NAV</div>
-              <div class="value"><strong>$${overview.nav_current.toLocaleString('en-US', {maximumFractionDigits: 2})} (${overview.nav_prev.toLocaleString('en-US', {maximumFractionDigits: 2})})</strong></div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="dashboard-item">
-              <div class="label">月變化</div>
-              <div class="value"><strong>${overview.month_change}%</strong></div>
-            </div>
-          </div>
-        `;
-
-        // 系統狀態
-        document.getElementById("system-status").innerHTML = overview.system_status === "正常"
-          ? '<span class="green">✅ 正常運作</span>'
-          : '<span class="red">❌ 出現問題</span>';
-
-        // 交易記錄表格
-        let tableHtml = '<tr><th>時間</th><th>資產</th><th>方向</th><th>價格</th><th>數量</th><th>損益</th></tr>';
-        for (let row of trades) {
-          tableHtml += `<tr>
-            <td>${row.time}</td>
-            <td>${row.asset}</td>
-            <td>${row.side}</td>
-            <td>${row.price}</td>
-            <td>${row.qty}</td>
-            <td>$${(row.price * row.qty).toLocaleString()}</td>
-          </tr>`;
-        }
-        document.getElementById("trade-log").innerHTML = tableHtml;
-
-        // 報價圖
-        new Chart(document.getElementById("priceChart"), {
-          type: "line",
-          data: {
-            labels: prices.map(p => p.date),
-            datasets: [{
-              label: "AAPL",
-              data: prices.map(p => p.aapl),
-              borderColor: "blue", 
-              fill: false,
-              pointRadius: 4,
-              tension: 0.4
-            }, {
-              label: "MNQ",
-              data: prices.map(p => p.mnq),
-              borderColor: "green", 
-              fill: false,
-              pointRadius: 4,
-              tension: 0.4
-            }]
-          },
-          options: {
-            responsive: true,
-            scales: {
-              y: {
-                title: {
-                  display: true,
-                  text: '價格'
-                }
-              }
-            }
-          }
-        });
-
-        // 宏觀經濟圖
-        new Chart(document.getElementById("macroChart"), {
-          type: "line",
-          data: {
-            labels: macros.map(m => m.year),
-            datasets: [
-              { 
-                label: "美元對港元", 
-                data: macros.map(m => m.usd_hkd), 
-                borderColor: "orange", 
-                pointRadius: 4,
-                tension: 0.4
-              },
-              { 
-                label: "美利率%", 
-                data: macros.map(m => m.us_rate), 
-                borderColor: "purple", 
-                pointRadius: 4,
-                tension: 0.4
-              },
-              { 
-                label: "香港樓價指數", 
-                data: macros.map(m => m.hk_property), 
-                borderColor: "brown", 
-                pointRadius: 4,
-                tension: 0.4
-              }
-            ]
-          },
-          options: {
-            responsive: true,
-            scales: {
-              y: {
-                title: {
-                  display: true,
-                  text: '指標值'
-                }
-              }
-            }
-          }
-        });
+        await updateSystemStatus();
+        await loadAndDisplayData();
+        setupAutoRefresh();
+        
+        // 更新UI状态
+        document.getElementById('status-indicator').className = `green`;
+        document.getElementById('status-indicator').textContent = '在线';
+        document.getElementById('status-message').textContent = '系统运行正常';
+        
       } catch (error) {
-        console.error("加載數據失敗:", error);
-        document.getElementById("system-status").innerHTML = '<span class="red">❌ 數據加載失敗</span>';
+        handleFatalError(error);
       }
     }
 
-    // 頁面加載完成後執行
-    window.addEventListener('DOMContentLoaded', loadDashboard);
+    // 更新系统状态
+    async function updateSystemStatus() {
+      try {
+        const response = await fetch(`${CONFIG.apiBaseUrl}system-status.json`, { 
+          cache: 'no-cache',
+          headers: { 'Cache-Control': 'no-cache' }
+        });
+        
+        if (!response.ok) throw new Error(`API错误: ${response.status}`);
+        
+        const statusData = await response.json();
+        systemStatus = {
+          status: statusData.status || 'unknown',
+          message: statusData.message || '无状态信息'
+        };
+        
+        updateStatusIndicator();
+        return true;
+        
+      } catch (error) {
+        console.error('获取系统状态失败:', error);
+        systemStatus.status = 'error';
+        systemStatus.message = error.message;
+        updateStatusIndicator();
+        return false;
+      }
+    }
+
+    // 更新状态指示器UI
+    function updateStatusIndicator() {
+      const indicator = document.getElementById('status-indicator');
+      const message = document.getElementById('status-message');
+      
+      indicator.className = systemStatus.status === 'online' ? 'green' : 'red';
+      indicator.textContent = systemStatus.status === 'online' ? '在线' : '离线';
+      message.textContent = systemStatus.message;
+    }
+
+    // 加载并显示数据
+    async function loadAndDisplayData() {
+      try {
+        // 显示加载指示器
+        showLoadingIndicators();
+        
+        // 获取数据（带有错误处理和缓存机制）
+        const [overview, trades, prices, macros] = await fetchDashboardData();
+        
+        // 更新缓存时间戳
+        dataCache.lastUpdated = Date.now();
+        
+        // 显示数据
+        displayOverview(overview);
+        displayTradeLog(trades);
+        renderMarketChart(prices);
+        renderPriceChart(prices);
+        renderMacroChart(macros);
+        
+      } catch (error) {
+        handleDataLoadError(error);
+      } finally {
+        hideLoadingIndicators();
+      }
+    }
+
+    // 显示加载指示器
+    function showLoadingIndicators() {
+      document.querySelectorAll('.stat-value').forEach(el => {
+        el.textContent = '加载中...';
+        el.className = '';
+      });
+      
+      document.getElementById('tradeLog').innerHTML = `
+        <tr>
+          <th colspan="2" class="text-center">交易数据加载中...</th>
+        </tr>
+      `;
+    }
+
+    // 隐藏加载指示器
+    function hideLoadingIndicators() {
+      // 不需要特殊操作，加载完成后会自动更新内容
+    }
+
+    // 获取仪表板数据
+    async function fetchDashboardData() {
+      const cacheValid = dataCache.lastUpdated && 
+                        (Date.now() - dataCache.lastUpdated) < dataCache.cacheTTL;
+                        
+      if (cacheValid) {
+        console.log('使用缓存数据');
+        return Promise.resolve({
+          overview: JSON.parse(localStorage.getItem('dashboard-overview')),
+          trades: JSON.parse(localStorage.getItem('dashboard-trades')),
+          prices: JSON.parse(localStorage.getItem('dashboard-prices')),
+          macros: JSON.parse(localStorage.getItem('dashboard-macros'))
+        });
+      }
+      
+      let retries = 0;
+      
+      const fetchWithRetry = async (url, options = {}) => {
+        try {
+          const response = await fetch(url, options);
+          if (!response.ok) throw new Error(`HTTP错误! 状态: ${response.status}`);
+          return await response.json();
+        } catch (error) {
+          if (retries >= CONFIG.maxRetries) throw error;
+          
+          retries++;
+          console.warn(`获取数据失败 (${retries}/${CONFIG.maxRetries}):`, error);
+          await new Promise(resolve => setTimeout(resolve, CONFIG.retryDelay * retries));
+          return fetchWithRetry(url, options);
+        }
+      };
+      
+      try {
+        // 并行获取所有数据
+        const [overviewRes, tradesRes, pricesRes, macrosRes] = await Promise.all([
+          fetchWithRetry(`${CONFIG.apiBaseUrl}overview.json`),
+          fetchWithRetry(`${CONFIG.apiBaseUrl}trades.json`),
+          fetchWithRetry(`${CONFIG.apiBaseUrl}prices.json`),
+          fetchWithRetry(`${CONFIG.apiBaseUrl}macros.json`)
+        ]);
+        
+        // 存储到本地存储以便缓存
+        localStorage.setItem('dashboard-overview', JSON.stringify(overviewRes));
+        localStorage.setItem('dashboard-trades', JSON.stringify(tradesRes));
+        localStorage.setItem('dashboard-prices', JSON.stringify(pricesRes));
+        localStorage.setItem('dashboard-macros', JSON.stringify(macrosRes));
+        
+        return { overview: overviewRes, trades: tradesRes, prices: pricesRes, macros: macrosRes };
+        
+      } catch (error) {
+        console.error('数据获取失败:', error);
+        throw new Error(`无法获取仪表板数据: ${error.message}`);
+      }
+    }
+
+    // 显示概览数据
+    function displayOverview(data) {
+      const container = document.querySelector('.stats-grid');
+      container.innerHTML = `
+        <div class="card">
+          <div class="stat-value">${formatCurrency(data.total_assets)}</div>
+          <div class="stat-label">資產總值</div>
+        </div>
+        <div class="card">
+          <div class="stat-value">${data.mnq_position}</div>
+          <div class="stat-label">MNQ 持倉</div>
+        </div>
+        <div class="card">
+          <div class="stat-value">${formatNumber(data.daily_pnl)} ${data.daily_pnl >= 0 ? '<span class="green">▲</span>' : '<span class="red">▼</span>'}</div>
+          <div class="stat-label">日收益</div>
+        </div>
+        <div class="card">
+          <div class="stat-value">${formatCurrency(data.nav_current)} <small>(${formatCurrency(data.nav_prev)})</small></div>
+          <div class="stat-label">NAV 變動</div>
+        </div>
+        <div class="card">
+          <div class="stat-value">${data.month_change}%</div>
+          <div class="stat-label">月增長率</div>
+        </div>
+        <div class="card">
+          <div class="stat-value">${data.trade_count}</div>
+          <div class="stat-label">交易次数</div>
+        </div>
+      `;
+    }
+
+    // 显示交易记录
+    function displayTradeLog(data) {
+      let tableHtml = '<tr><th>时间</th><th>资产</th><th>方向</th><th>价格</th><th>数量</th><th>盈亏</th></tr>';
+      
+      for (let row of data) {
+        const pnlClass = row.pnl >= 0 ? 'green' : 'red';
+        tableHtml += `<tr>
+          <td>${formatDateTime(row.time)}</td>
+          <td>${row.asset}</td>
+          <td>${row.side}</td>
+          <td>${formatCurrency(row.price)}</td>
+          <td>${formatNumber(row.qty)}</td>
+          <td><span class="${pnlClass}">${formatCurrency(row.pnl)}</span></td>
+        </tr>`;
+      }
+      
+      document.getElementById('tradeLog').innerHTML = tableHtml || '<tr><td colspan="6" class="text-center">暂无交易记录</td></tr>';
+    }
+
+    // 格式化货币
+    function formatCurrency(value) {
+      return typeof value === 'number' ? '$' + value.toFixed(2) : value;
+    }
+
+    // 格式化数字（添加千位分隔符）
+    function formatNumber(value) {
+      return typeof value === 'number' ? value.toLocaleString('zh-TW') : value;
+    }
+
+    // 格式化日期时间
+    function formatDateTime(timestamp) {
+      if (!timestamp) return 'N/A';
+      const date = new Date(timestamp);
+      return date.toLocaleString('zh-TW', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      });
+    }
+
+    // 渲染市场数据图表
+    function renderMarketChart(data) {
+      const ctx = document.getElementById('marketChart').getContext('2d');
+      
+      // 注册所有需要的Chart.js组件（Chart.js 3.x需要显式注册）
+      Chart.register(
+        Chart.LinearScale,
+        Chart.CategoryScale,
+        Chart.PointElement,
+        Chart.LineElement,
+        Chart.Legend,
+        Chart.Title
+      );
+      
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: data.map(item => formatDate(item.time)),
+          datasets: [{
+            label: 'S&P 500',
+            data: data.map(item => item.spx),
+            borderColor: '#3498db',
+            tension: 0.2,
+            borderWidth: 2,
+            pointRadius: 0,
+            fill: true,
+            backgroundColor: 'rgba(52, 152, 219, 0.1)'
+          }, {
+            label: 'Dow Jones',
+            data: data.map(item => item.djia),
+            borderColor: '#2ecc71',
+            tension: 0.2,
+            borderWidth: 2,
+            pointRadius: 0,
+            fill: true,
+            backgroundColor: 'rgba(46, 204, 113, 0.1)'
+          }, {
+            label: 'Nasdaq',
+            data: data.map(item => item.nasdaq),
+            borderColor: '#e74c3c',
+            tension: 0.2,
+            borderWidth: 2,
+            pointRadius: 0,
+            fill: true,
+            backgroundColor: 'rgba(231, 76, 60, 0.1)'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                font: { size: 12 },
+                color: '#555'
+              }
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false,
+              callbacks: {
+                label: function(context) {
+                  return `${context.dataset.label}: ${formatCurrency(context.parsed.y)}`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              type: 'time',
+              time: {
+                unit: 'day',
+                displayFormats: {
+                  day: 'MMM DD'
+                }
+              },
+              title: {
+                display: true,
+                text: '日期'
+              }
+            },
+            y: {
+              title: {
+                display: true,
+                text: '指数值'
+              },
+              ticks: {
+                callback: function(value) {
+                  return `$${value.toLocaleString()}`;
+                }
+              }
+            }
+          },
+          interaction: {
+            mode: 'nearest',
+            axis: 'x',
+            intersect: false
+          }
+        }
+      });
+    }
+
+    // 渲染资产价格图表
+    function renderPriceChart(data) {
+      const ctx = document.getElementById('priceChart').getContext('2d');
+      
+      // 注册所有需要的Chart.js组件
+      Chart.register(
+        Chart.LinearScale,
+        Chart.CategoryScale,
+        Chart.PointElement,
+        Chart.LineElement,
+        Chart.Legend,
+        Chart.Title
+      );
+      
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: data.map(p => formatDate(p.date)),
+          datasets: [{
+            label: 'AAPL',
+            data: data.map(p => p.aapl),
+            borderColor: '#3498db',
+            tension: 0.3,
+            borderWidth: 2,
+            pointRadius: 0,
+            fill: false
+          }, {
+            label: 'GOOGL',
+            data: data.map(p => p.googl),
+            borderColor: '#2ecc71',
+            tension: 0.3,
+            borderWidth: 2,
+            pointRadius: 0,
+            fill: false
+          }, {
+            label: 'TSLA',
+            data: data.map(p => p.tsla),
+            borderColor: '#e74c3c',
+            tension: 0.3,
+            borderWidth: 2,
+            pointRadius: 0,
+            fill: false
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                font: { size: 12 },
+                color: '#555'
+              }
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false,
+              callbacks: {
+                label: function(context) {
+                  return `${context.dataset.label}: ${formatCurrency(context.parsed.y)}`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              type: 'time',
+              time: {
+                unit: 'day',
+                displayFormats: {
+                  day: 'MMM DD'
+                }
+              },
+              title: {
+                display: true,
+                text: '日期'
+              }
+            },
+            y: {
+              title: {
+                display: true,
+                text: '价格'
+              },
+              ticks: {
+                callback: function(value) {
+                  return `$${value.toLocaleString()}`;
+                }
+              }
+            }
+          },
+          interaction: {
+            mode: 'nearest',
+            axis: 'x',
+            intersect: false
+          }
+        }
+      });
+    }
+
+    // 渲染宏观经济图表
+    function renderMacroChart(data) {
+      const ctx = document.getElementById('macroChart').getContext('2d');
+      
+      // 注册所有需要的Chart.js组件
+      Chart.register(
+        Chart.LinearScale,
+        Chart.CategoryScale,
+        Chart.PointElement,
+        Chart.LineElement,
+        Chart.Legend,
+        Chart.Title
+      );
+      
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: data.map(m => m.year),
+          datasets: [
+            { 
+              label: '美元兑港元', 
+              data: data.map(m => m.usd_hkd), 
+              borderColor: '#f39c12', 
+              tension: 0.3 
+            },
+            { 
+              label: '美利率%', 
+              data: data.map(m => m.us_rate), 
+              borderColor: '#9b59b6', 
+              tension: 0.3 
+            },
+            { 
+              label: '香港GDP', 
+              data: data.map(m => m.hk_gdp), 
+              borderColor: '#e67e22', 
+              tension: 0.3 
+            },
+            { 
+              label: '香港樓價指數', 
+              data: data.map(m => m.hk_property), 
+              borderColor: '#1abc9c', 
+              tension: 0.3 
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                font: { size: 12 },
+                color: '#555'
+              }
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false,
+              callbacks: {
+                label: function(context) {
+                  return `${context.dataset.label}: ${formatCurrency(context.parsed.y)}`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: '年份'
+              }
+            },
+            y: {
+              title: {
+                display: true,
+                text: '数值'
+              },
+              ticks: {
+                callback: function(value) {
+                  return typeof value === 'number' ? value.toLocaleString() : value;
+                }
+              }
+            }
+          },
+          interaction: {
+            mode: 'nearest',
+            axis: 'x',
+            intersect: false
+          }
+        }
+      });
+    }
+
+    // 格式化日期
+    function formatDate(dateStr) {
+      if (!dateStr) return 'N/A';
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('zh-TW', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      });
+    }
+
+    // 自动刷新数据
+    function setupAutoRefresh() {
+      setInterval(async () => {
+        try {
+          await loadAndDisplayData();
+          console.log('数据已自动刷新');
+        } catch (error) {
+          console.error('自动刷新数据失败:', error);
+          updateSystemStatus();
+        }
+      }, CONFIG.refreshInterval);
+    }
+
+    // 处理致命错误
+    function handleFatalError(error) {
+      console.error('致命错误:', error);
+      
+      document.getElementById('status-indicator').className = 'red';
+      document.getElementById('status-indicator').textContent = '错误';
+      document.getElementById('status-message').textContent = '系统发生严重错误，请联系管理员';
+      
+      document.querySelector('.section').innerHTML = `
+        <h2>系统错误</h2>
+        <p>${error.message}</p>
+        <p>请刷新页面或联系技术支持。</p>
+      `;
+    }
+
+    // 当文档加载完成时初始化应用
+    document.addEventListener('DOMContentLoaded', initializeApp);
   </script>
 
 </body>
