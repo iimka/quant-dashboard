@@ -49,10 +49,10 @@
     async function loadDashboard() {
       // 這裡請替換成你 GitHub raw JSON 檔的 URL
       const [overview, trades, prices, macros] = await Promise.all([
-        fetch('https://raw.githubusercontent.com/yourusername/yourrepo/main/overview.json').then(r => r.json()),
-        fetch('https://raw.githubusercontent.com/yourusername/yourrepo/main/trades.json').then(r => r.json()),
-        fetch('https://raw.githubusercontent.com/yourusername/yourrepo/main/prices.json').then(r => r.json()),
-        fetch('https://raw.githubusercontent.com/yourusername/yourrepo/main/macros.json').then(r => r.json()),
+        fetch('https://raw.githubusercontent.com/yourusername/yourrepo/main/data/overview.json').then(r => r.json()),
+        fetch('https://raw.githubusercontent.com/yourusername/yourrepo/main/data/trades.json').then(r => r.json()),
+        fetch('https://raw.githubusercontent.com/yourusername/yourrepo/main/data/prices.json').then(r => r.json()),
+        fetch('https://raw.githubusercontent.com/yourusername/yourrepo/main/data/macros.json').then(r => r.json()),
       ]);
 
       // 概覽卡片
