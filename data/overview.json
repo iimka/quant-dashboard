@@ -1,26 +1,11 @@
 [
   {
-    "1234567": -2,
-    "total_assets": "mnq_position"
-  },
-  {
-    "1234567": -235,
-    "total_assets": "daily_pnl"
-  },
-  {
-    "1234567": 101.56,
-    "total_assets": "nav_current"
-  },
-  {
-    "1234567": 100.12,
-    "total_assets": "nav_prev"
-  },
-  {
-    "1234567": 1.43,
-    "total_assets": "month_change"
-  },
-  {
-    "1234567": "??",
-    "total_assets": "system_status"
+    "total_assets": 1234567,
+    "mnq_position": -2,
+    "daily_pnl": -235,
+    "nav_current": 101.56,
+    "nav_prev": 100.12,
+    "month_change": 1.43,
+    "system_status": "??"
   }
 ]
