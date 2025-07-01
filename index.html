@@ -227,10 +227,10 @@
       if (cacheValid) {
         console.log('使用缓存数据');
         return Promise.resolve({
-          overview: JSON.parse(localStorage.getItem('dashboard-overview')),
-          trades: JSON.parse(localStorage.getItem('dashboard-trades')),
-          prices: JSON.parse(localStorage.getItem('dashboard-prices')),
-          macros: JSON.parse(localStorage.getItem('dashboard-macros'))
+          overview: JSON.parse(localStorage.getItem('overview')),
+          trades: JSON.parse(localStorage.getItem('trades')),
+          prices: JSON.parse(localStorage.getItem('prices')),
+          macros: JSON.parse(localStorage.getItem('macros'))
         });
       }
       
@@ -254,10 +254,10 @@
       try {
         // 并行获取所有数据
         const [overviewRes, tradesRes, pricesRes, macrosRes] = await Promise.all([
-          fetchWithRetry(`${CONFIG.apiBaseUrl}overview.json`),
-          fetchWithRetry(`${CONFIG.apiBaseUrl}trades.json`),
-          fetchWithRetry(`${CONFIG.apiBaseUrl}prices.json`),
-          fetchWithRetry(`${CONFIG.apiBaseUrl}macros.json`)
+          fetchWithRetry(`${CONFIG.apiBaseUrl}/overview.json`),
+          fetchWithRetry(`${CONFIG.apiBaseUrl}/trades.json`),
+          fetchWithRetry(`${CONFIG.apiBaseUrl}/prices.json`),
+          fetchWithRetry(`${CONFIG.apiBaseUrl}/macros.json`)
         ]);
         
         // 存储到本地存储以便缓存
